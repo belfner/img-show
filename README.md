@@ -1,6 +1,6 @@
-# show-img
+# img-show
 
-`show-img` is a Python package that simplifies the process of displaying images using OpenCV. It allows you to load, coerce, and display images of various types, shapes, and data formats effortlessly, handling the complexities of image preprocessing and window management for you.
+`img-show` is a Python package that simplifies the process of displaying images using OpenCV. It allows you to load, coerce, and display images of various types, shapes, and data formats effortlessly, handling the complexities of image preprocessing and window management for you.
 
 ## Features
 
@@ -11,10 +11,10 @@
 
 ## Installation
 
-You can install `show-img` via pip:
+You can install `img-show` via pip:
 
 ```bash
-pip install show-img
+pip install img-show
 ```
 
 ## Requirements
@@ -28,10 +28,10 @@ pip install show-img
 
 ### Displaying an Image
 
-`show-img` provides a simple `show_img` function to display images.
+`img-show` provides a simple `show_img` function to display images.
 
 ```python
-from show_img import show_img
+from img_show import show_img
 
 # Assuming 'img' is a NumPy array or a PyTorch tensor
 show_img(img)
@@ -39,12 +39,12 @@ show_img(img)
 
 ### Handling Different Image Formats
 
-`show-img` can handle images in various formats, including NumPy arrays and PyTorch tensors.
+`img-show` can handle images in various formats, including NumPy arrays and PyTorch tensors.
 
 ```python
 import numpy as np
 import torch
-from show_img import show_img
+from img_show import show_img
 
 # NumPy array
 img_numpy = np.random.rand(256, 256, 3)
@@ -60,17 +60,17 @@ show_img(img_tensor)
 You can customize the window name, wait delay, and whether to wait for a key press.
 
 ```python
-from show_img import show_img
+from img_show import show_img
 
 show_img(img, window_name='My Image', wait_delay=5000, do_wait=True)
 ```
 
 ### Resizing Images Automatically
 
-If the image is larger than the screen, `show-img` automatically resizes the window to fit the screen while maintaining the aspect ratio.
+If the image is larger than the screen, `img-show` automatically resizes the window to fit the screen while maintaining the aspect ratio.
 
 ```python
-from show_img import show_img
+from img_show import show_img
 
 # Display a large image
 large_img = np.random.rand(4000, 6000, 3)
@@ -79,11 +79,11 @@ show_img(large_img)
 
 ### Handling Images with Extra Dimensions
 
-`show-img` can coerce images with extra dimensions (e.g., singleton dimensions) into valid shapes for display.
+`img-show` can coerce images with extra dimensions (e.g., singleton dimensions) into valid shapes for display.
 
 ```python
 import numpy as np
-from show_img import show_img
+from img_show import show_img
 
 # Image with an extra leading dimension
 extra_dim_img = np.random.rand(1, 256, 256, 3)
@@ -100,11 +100,11 @@ show_img(singleton_channel_img)
 
 ### Handling Images in Different Channel Orders
 
-`show-img` automatically handles different channel orders (e.g., channels-first vs. channels-last).
+`img-show` automatically handles different channel orders (e.g., channels-first vs. channels-last).
 
 ```python
 import numpy as np
-from show_img import show_img
+from img_show import show_img
 
 # Channels-first format (e.g., PyTorch)
 channels_first_img = np.random.rand(3, 256, 256)
@@ -148,7 +148,7 @@ coerce_img(img: Any) -> np.ndarray
 
 ## License
 
-`show-img` is licensed under the [MIT License](LICENSE).
+`img-show` is licensed under the [MIT License](LICENSE).
 
 ## Author
 
