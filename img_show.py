@@ -44,7 +44,7 @@ def coerce_img(img: Any) -> np.ndarray:
             pass
 
     if not isinstance(img, np.ndarray):
-        TypeError(f'Unexpected type for img: {type(img)}')
+        raise TypeError(f'Unexpected type for img: {type(img)}')
 
     img = _coerce_shape(img)
 
