@@ -64,6 +64,7 @@ def coerce_img(img: Any) -> np.ndarray:
                     else:  # Array is all zeros so just convert to black
                         img = img.astype(np.uint8)
                 else:
+                    # Convert to float and set range to 0-1
                     img = (img.astype(np.float64) - img_min) / img_range
         elif np.issubdtype(img.dtype, np.floating):
             if img.dtype.itemsize < np.dtype(np.float32).itemsize:
