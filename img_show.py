@@ -1,6 +1,14 @@
 from typing import Any
+from typing import Iterable
+from typing import Optional
+from typing import Set
+from typing import Tuple
 
+import cv2
 import numpy as np
+
+open_window_names: Set[str] = set()
+_cached_display_size: Optional[Tuple[int, int]] = None
 
 
 def _valid_img_shape(img: np.ndarray) -> bool:
@@ -83,21 +91,23 @@ def coerce_img(img: Any) -> np.ndarray:
     return img
 
 
-def show_img(img: Any, window_name: str = ' ', wait_delay: int = 0,
-             do_wait: bool = True):
-    import cv2
+def _get_display_size() -> Tuple[int, int]:
     import tkinter as tk
-    from typing import Tuple
-
-    img = coerce_img(img)
-
-    def get_display_size() -> Tuple[int, int]:
+    global _cached_display_size
+    if _cached_display_size is None:
         root = tk.Tk()
         screen_h = root.winfo_screenheight()
         screen_w = root.winfo_screenwidth()
-        return screen_h, screen_w
+        root.destroy()
+        _cached_display_size = (screen_h, screen_w)
+    return _cached_display_size
 
-    screen_h, screen_w = get_display_size()
+
+def _show_img(img: Any, window_name: str = ' ', do_coerce: bool = True) -> None:
+    if do_coerce:
+        img = coerce_img(img)
+
+    screen_h, screen_w = _get_display_size()
 
     if img.shape[0] + 250 > screen_h or img.shape[1] > screen_w:
         aspect_ratio = img.shape[1] / (img.shape[0] + 150)
@@ -115,5 +125,53 @@ def show_img(img: Any, window_name: str = ' ', wait_delay: int = 0,
     if do_resize:
         cv2.resizeWindow(window_name, window_width, window_height)
 
+
+def show_img(img: Any, window_name: str = ' ', wait_delay: int = 0, do_wait: bool = True,
+             destroy_window: bool = True) -> None:
+    global open_window_names
+
+    _show_img(img, window_name, do_coerce=True)
+
     if do_wait:
         cv2.waitKey(wait_delay)
+
+        if destroy_window:
+            cv2.destroyWindow(window_name)
+        else:
+            open_window_names.add(window_name)
+
+
+def show_imgs(imgs: Iterable[Any],
+              window_names: Iterable[str] = ('',),
+              wait_delay: int = 0,
+              do_wait: bool = True,
+              destroy_windows: bool = True) -> None:
+    window_names = list(window_names)
+
+    coerced_images = [coerce_img(img) for img in imgs]
+
+    assert len(coerced_images) == len(window_names), 'The number of images must equal the number of window names'
+
+    for window_name, img in zip(window_names, coerced_images):
+        _show_img(img, window_name, do_coerce=False)
+
+    if do_wait:
+        cv2.waitKey(wait_delay)
+
+        if destroy_windows:
+            for window_name in window_names:
+                cv2.destroyWindow(window_name)
+        else:
+            for window_name in window_names:
+                open_window_names.add(window_name)
+
+
+def close_all() -> None:
+    global open_window_names
+    for window_name in open_window_names:
+        try:
+            cv2.destroyWindow(window_name)
+        except cv2.error:
+            # Window was already closed by another method
+            pass
+    open_window_names.clear()
