@@ -6,12 +6,15 @@ from typing import Tuple
 
 import cv2
 import numpy as np
+import numpy.typing as npt
+
+__all__ = ['show_img', 'show_imgs', 'coerce_img', 'close_all']
 
 open_window_names: Set[str] = set()
 _cached_display_size: Optional[Tuple[int, int]] = None
 
 
-def _valid_img_shape(img: np.ndarray) -> bool:
+def _valid_img_shape(img: npt.NDArray[np.number[Any]]) -> bool:
     """
     Check if image array has a valid shape for display.
 
@@ -35,7 +38,7 @@ def _valid_img_shape(img: np.ndarray) -> bool:
     return True
 
 
-def _coerce_shape(img: np.ndarray) -> np.ndarray:
+def _coerce_shape(img: npt.NDArray[np.number[Any]]) -> npt.NDArray[np.number[Any]]:
     """
     Transform image array into a valid shape for display.
 
@@ -78,7 +81,7 @@ def _coerce_shape(img: np.ndarray) -> np.ndarray:
         return img
 
 
-def coerce_img(img: Any) -> np.ndarray:
+def coerce_img(input_img: Any) -> npt.NDArray[np.number[Any]]:
     """
     Convert various image formats to a displayable NumPy array.
 
@@ -89,7 +92,7 @@ def coerce_img(img: Any) -> np.ndarray:
 
     Parameters
     ----------
-    img : Any
+    input_img : Any
         Input image. Can be a NumPy array, PyTorch tensor, or other
         array-like object.
 
@@ -106,19 +109,23 @@ def coerce_img(img: Any) -> np.ndarray:
     ValueError
         If the image cannot be coerced into a valid display shape.
     """
-    if not isinstance(img, np.ndarray):
+    if not isinstance(input_img, np.ndarray):
         try:
             import torch
-            if isinstance(img, torch.Tensor):
-                img = img.detach().cpu()
-                img = img.numpy()
-            else:
-                raise TypeError(f'Unexpected type for img: {type(img)}')
-        except ImportError:
-            pass
 
-    if not isinstance(img, np.ndarray):
-        raise TypeError(f'Unexpected type for img: {type(img)}')
+            if isinstance(input_img, torch.Tensor):
+                input_img = input_img.detach().cpu()
+                converted_img = input_img.numpy()
+                if not isinstance(converted_img, np.ndarray):
+                    raise TypeError(f'Unexpected type for img: {type(converted_img)}')
+                img: npt.NDArray[np.number[Any]] = converted_img
+            else:
+                raise TypeError(f'Unexpected type for img: {type(input_img)}')
+        except ImportError:
+            raise TypeError(f'Unexpected type for img: {type(input_img)}') from None
+
+    else:
+        img = input_img
 
     img = _coerce_shape(img)
 
@@ -170,6 +177,7 @@ def _get_display_size() -> Tuple[int, int]:
         Screen dimensions as (height, width) in pixels.
     """
     import tkinter as tk
+
     global _cached_display_size
     if _cached_display_size is None:
         root = tk.Tk()
@@ -219,8 +227,9 @@ def _show_img(img: Any, window_name: str = ' ', do_coerce: bool = True) -> None:
         cv2.resizeWindow(window_name, window_width, window_height)
 
 
-def show_img(img: Any, window_name: str = ' ', wait_delay: int = 0, do_wait: bool = True,
-             destroy_window: bool = True) -> None:
+def show_img(
+    img: Any, window_name: str = ' ', wait_delay: int = 0, do_wait: bool = True, destroy_window: bool = True
+) -> None:
     """
     Display a single image with automatic coercion and sizing.
 
@@ -243,7 +252,6 @@ def show_img(img: Any, window_name: str = ' ', wait_delay: int = 0, do_wait: boo
         Whether to close window after waiting, by default True.
         If False, window remains open and is tracked for cleanup.
     """
-    global open_window_names
 
     _show_img(img, window_name, do_coerce=True)
 
@@ -256,11 +264,13 @@ def show_img(img: Any, window_name: str = ' ', wait_delay: int = 0, do_wait: boo
             open_window_names.add(window_name)
 
 
-def show_imgs(imgs: Iterable[Any],
-              window_names: Iterable[str] = ('',),
-              wait_delay: int = 0,
-              do_wait: bool = True,
-              destroy_windows: bool = True) -> None:
+def show_imgs(
+    imgs: Iterable[Any],
+    window_names: Iterable[str] = ('',),
+    wait_delay: int = 0,
+    do_wait: bool = True,
+    destroy_windows: bool = True,
+) -> None:
     """
     Display multiple images simultaneously in separate windows.
 
@@ -317,7 +327,6 @@ def close_all() -> None:
     and closes them. Handles cases where windows may have already been
     closed externally.
     """
-    global open_window_names
     for window_name in open_window_names:
         try:
             cv2.destroyWindow(window_name)

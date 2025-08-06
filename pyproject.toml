@@ -1,0 +1,107 @@
+[project]
+name = "img-show"
+version = "0.1.0"
+description = "A opinionated tool for coercing data into something displayable"
+authors = [
+    { name = "Ben Elfner", email = "belfner@belfner.com" }
+]
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.8"
+dependencies = [
+    "numpy>=1.24.4",
+    "opencv-python>=4.11.0.86",
+]
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Operating System :: Unix",
+    "Operating System :: Microsoft :: Windows",
+    "Topic :: Utilities",
+]
+
+[project.urls]
+Homepage = "https://github.com/belfner/img-show"
+Repository = "https://github.com/belfner/img-show"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "mypy>=1.14.1",
+    "ruff>=0.12.7",
+    "twine>=6.1.0",
+]
+
+[tool.ruff]
+target-version = "py38"
+line-length = 120
+
+[tool.ruff.lint]
+select = [
+    "E",      # pycodestyle errors
+    "W",      # pycodestyle warnings
+    "F",      # pyflakes
+    "I",      # isort
+    "B",      # flake8-bugbear
+    "C4",     # flake8-comprehensions
+    "UP",     # pyupgrade
+    "ARG001", # unused arguments
+    "SIM",    # flake8-simplify
+    "TCH",    # flake8-type-checking
+    "TID",    # flake8-tidy-imports
+    "ICN",    # flake8-import-conventions
+    "RET",    # flake8-return
+    "PLR",    # pylint refactor
+    "PLW",    # pylint warnings
+    "PTH",    # flake8-use-pathlib
+]
+ignore = [
+    "E501",   # line too long (handled by formatter)
+    "PLR0913", # too many arguments
+    "PLR2004", # magic value used in comparison
+    "RET504", # unnecessary assignment before return
+    "SIM108", # use ternary operator instead of if-else-block
+    "PLW0603", # using global statement is discouraged
+]
+
+[tool.ruff.format]
+quote-style = "single"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+
+[tool.ruff.lint.isort]
+split-on-trailing-comma = true
+force-single-line = true
+
+[tool.mypy]
+python_version = "3.8"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+show_error_codes = true
+plugins = ["numpy.typing.mypy_plugin"]
+
+[[tool.mypy.overrides]]
+module = "torch"
+ignore_missing_imports = true
