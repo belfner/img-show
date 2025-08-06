@@ -12,6 +12,22 @@ _cached_display_size: Optional[Tuple[int, int]] = None
 
 
 def _valid_img_shape(img: np.ndarray) -> bool:
+    """
+    Check if image array has a valid shape for display.
+
+    Validates that the image has 2 or 3 dimensions, and if 3D,
+    the last dimension must be 3 (RGB) or 4 (RGBA) channels.
+
+    Parameters
+    ----------
+    img : np.ndarray
+        Image array to validate.
+
+    Returns
+    -------
+    bool
+        True if image shape is valid for display, False otherwise.
+    """
     if not 2 <= img.ndim <= 3:
         return False
     if img.ndim == 3 and img.shape[2] != 3 and img.shape[2] != 4:
@@ -20,6 +36,29 @@ def _valid_img_shape(img: np.ndarray) -> bool:
 
 
 def _coerce_shape(img: np.ndarray) -> np.ndarray:
+    """
+    Transform image array into a valid shape for display.
+
+    Removes singleton dimensions, converts from channels-first to channels-last
+    format (e.g., PyTorch to OpenCV format), and ensures the result has a
+    valid shape for image display.
+
+    Parameters
+    ----------
+    img : np.ndarray
+        Input image array to reshape.
+
+    Returns
+    -------
+    np.ndarray
+        Reshaped image array with valid display dimensions.
+
+    Raises
+    ------
+    ValueError
+        If the image has fewer than 2 dimensions or cannot be coerced
+        into a valid display shape.
+    """
     original_shape = img.shape
     if len(img.shape) < 2:
         raise ValueError(f'Unable to coerce shape of {img.shape}')
@@ -40,6 +79,33 @@ def _coerce_shape(img: np.ndarray) -> np.ndarray:
 
 
 def coerce_img(img: Any) -> np.ndarray:
+    """
+    Convert various image formats to a displayable NumPy array.
+
+    Handles conversion from PyTorch tensors, normalizes data types,
+    and ensures the image is in the correct format for OpenCV display.
+    Automatically converts boolean, integer, and floating-point arrays
+    to appropriate display ranges.
+
+    Parameters
+    ----------
+    img : Any
+        Input image. Can be a NumPy array, PyTorch tensor, or other
+        array-like object.
+
+    Returns
+    -------
+    np.ndarray
+        Image array ready for display, with shape coerced to valid
+        dimensions and dtype normalized for visualization.
+
+    Raises
+    ------
+    TypeError
+        If the input type cannot be converted to a NumPy array.
+    ValueError
+        If the image cannot be coerced into a valid display shape.
+    """
     if not isinstance(img, np.ndarray):
         try:
             import torch
@@ -92,6 +158,17 @@ def coerce_img(img: Any) -> np.ndarray:
 
 
 def _get_display_size() -> Tuple[int, int]:
+    """
+    Get the screen dimensions, cached for performance.
+
+    Uses tkinter to query the screen size and cache the result
+    to avoid repeated GUI operations.
+
+    Returns
+    -------
+    Tuple[int, int]
+        Screen dimensions as (height, width) in pixels.
+    """
     import tkinter as tk
     global _cached_display_size
     if _cached_display_size is None:
@@ -104,6 +181,22 @@ def _get_display_size() -> Tuple[int, int]:
 
 
 def _show_img(img: Any, window_name: str = ' ', do_coerce: bool = True) -> None:
+    """
+    Display an image in an OpenCV window with automatic sizing.
+
+    Creates a window and displays the image, automatically resizing
+    large images to fit within screen dimensions while maintaining
+    aspect ratio.
+
+    Parameters
+    ----------
+    img : Any
+        Image to display. Will be coerced if do_coerce is True.
+    window_name : str, optional
+        Name for the display window, by default ' '.
+    do_coerce : bool, optional
+        Whether to apply image coercion, by default True.
+    """
     if do_coerce:
         img = coerce_img(img)
 
@@ -128,6 +221,28 @@ def _show_img(img: Any, window_name: str = ' ', do_coerce: bool = True) -> None:
 
 def show_img(img: Any, window_name: str = ' ', wait_delay: int = 0, do_wait: bool = True,
              destroy_window: bool = True) -> None:
+    """
+    Display a single image with automatic coercion and sizing.
+
+    Main function for displaying images. Handles image conversion,
+    window creation, and optionally waits for user input before
+    closing or keeping the window open.
+
+    Parameters
+    ----------
+    img : Any
+        Image to display. Can be NumPy array, PyTorch tensor, etc.
+    window_name : str, optional
+        Name for the display window, by default ' '.
+    wait_delay : int, optional
+        Milliseconds to wait for keypress (0 = wait indefinitely),
+        by default 0.
+    do_wait : bool, optional
+        Whether to wait for user input, by default True.
+    destroy_window : bool, optional
+        Whether to close window after waiting, by default True.
+        If False, window remains open and is tracked for cleanup.
+    """
     global open_window_names
 
     _show_img(img, window_name, do_coerce=True)
@@ -146,6 +261,34 @@ def show_imgs(imgs: Iterable[Any],
               wait_delay: int = 0,
               do_wait: bool = True,
               destroy_windows: bool = True) -> None:
+    """
+    Display multiple images simultaneously in separate windows.
+
+    Creates multiple windows to display a collection of images.
+    All images are coerced and displayed before waiting for user input.
+
+    Parameters
+    ----------
+    imgs : Iterable[Any]
+        Collection of images to display. Each can be NumPy array,
+        PyTorch tensor, etc.
+    window_names : Iterable[str], optional
+        Names for the display windows. Must have same length as imgs,
+        by default ('',).
+    wait_delay : int, optional
+        Milliseconds to wait for keypress (0 = wait indefinitely),
+        by default 0.
+    do_wait : bool, optional
+        Whether to wait for user input, by default True.
+    destroy_windows : bool, optional
+        Whether to close windows after waiting, by default True.
+        If False, windows remain open and are tracked for cleanup.
+
+    Raises
+    ------
+    AssertionError
+        If the number of images doesn't match the number of window names.
+    """
     window_names = list(window_names)
 
     coerced_images = [coerce_img(img) for img in imgs]
@@ -167,6 +310,13 @@ def show_imgs(imgs: Iterable[Any],
 
 
 def close_all() -> None:
+    """
+    Close all tracked image windows and clear the tracking set.
+
+    Iterates through all windows that were kept open (destroy_window=False)
+    and closes them. Handles cases where windows may have already been
+    closed externally.
+    """
     global open_window_names
     for window_name in open_window_names:
         try:
